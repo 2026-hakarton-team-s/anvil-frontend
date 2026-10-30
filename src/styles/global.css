@@ -167,6 +167,8 @@ input[type='range'] { accent-color: var(--accent); width: 100%; }
 
 /* 후보 룰 표 */
 .table-wrap { overflow: auto; max-height: 420px; }
+/* 후보가 많아지면 약 5행까지만 보이고 표 안에서 스크롤 (헤더는 고정) */
+.candidates .table-wrap { max-height: 268px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #d5d7db transparent; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
 th.num { text-align: right; }
