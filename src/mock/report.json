@@ -1,0 +1,57 @@
+{
+  "gen": 2,
+  "busy": false,
+  "activeStage": null,
+  "stages": [
+    "공격 27건 (우회 사례 12)",
+    "후보 16개 생성",
+    "정상 48건 검사 · 5개 탈락",
+    "변형 공격 105건 · 4개 뚫림",
+    "3개 반영 · 실전 우회 9건"
+  ],
+  "converged": false,
+  "kpis": { "deployed": 3, "totalTypes": 4, "detect": 0.73, "bypass": 0.27, "fp": 0, "techniques": 4, "corpus": 30 },
+  "candidates": [
+    {
+      "id": "R017", "type": "sqli", "pattern": "'\\s*(OR|AND)\\s+'?\\w+'?\\s*=|UNION\\s+SELECT", "tier": "good",
+      "flags": ["i", "url", "cmt"], "gen": 2, "status": "deploy", "detect": 1, "fp": 0, "bypass": 0.04,
+      "fpSamples": [], "bypassSamples": []
+    },
+    {
+      "id": "R018", "type": "sqli", "pattern": "select", "tier": "broad",
+      "flags": ["i"], "gen": 2, "status": "fp", "detect": 0.75, "fp": 0.08,
+      "fpSamples": ["/search?q=select a plan", "/search?q=how to select columns in excel"], "bypassSamples": []
+    },
+    {
+      "id": "R019", "type": "xss", "pattern": "<script>alert(1)</script>", "tier": "literal",
+      "flags": [], "gen": 2, "status": "byp", "detect": 0.75, "fp": 0, "bypass": 0.71,
+      "fpSamples": [],
+      "bypassSamples": [{ "text": "/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E", "techs": ["url"] }]
+    }
+  ],
+  "deployed": [
+    {
+      "id": "R017", "type": "sqli", "pattern": "'\\s*(OR|AND)\\s+'?\\w+'?\\s*=|UNION\\s+SELECT", "tier": "good",
+      "flags": ["i", "url", "cmt"], "gen": 2, "status": "deploy", "detect": 1, "fp": 0, "bypass": 0.04,
+      "fpSamples": [], "bypassSamples": []
+    }
+  ],
+  "history": [
+    { "gen": 0, "detect": 0, "bypass": 1, "fp": 0 },
+    { "gen": 1, "detect": 0.31, "bypass": 0.69, "fp": 0 },
+    { "gen": 2, "detect": 0.73, "bypass": 0.27, "fp": 0 }
+  ],
+  "corpus": {
+    "attacks": [
+      { "type": "sqli", "text": "/item?id=1' OR 1=1--", "learned": false },
+      { "type": "xss", "text": "/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E", "learned": true }
+    ],
+    "learned": 1
+  },
+  "logs": [
+    { "gen": 2, "level": "ok", "msg": "SQLi 룰 배포: R017 (우회 4%, 오탐 0%)", "t": 0 },
+    { "gen": 2, "level": "warn", "msg": "오탐 검증: 정상 요청 48건 기준 오탐 3개, 탐지 부족 2개 탈락", "t": 0 },
+    { "gen": 1, "level": "info", "msg": "시그니처 후보 16개 생성 (패턴 풀)", "t": 0 }
+  ],
+  "env": { "wafConnected": false, "aiEnabled": false }
+}
