@@ -1,3 +1,5 @@
+import logo from '../assets/logo.png';
+
 const ICON = {
   home: <path d="M3 11.2 12 3.5l9 7.7V21h-6.5v-6h-5v6H3z" fill="currentColor" stroke="none" />,
   report: (
@@ -55,7 +57,7 @@ export default function Sidebar({ page, onNavigate }) {
   );
   return (
     <nav className="sidebar" aria-label="메뉴">
-      <div className="sidebar-logo">ANVIL</div>
+      <img className="sidebar-logo" src={logo} alt="ANVIL" width="40" height="47" />
       <div className="nav-group">{TOP.map(item)}</div>
       <div className="nav-group bottom">
         {item({ id: 'alerts', label: '알림' })}

@@ -31,7 +31,7 @@ function Segment({ label, options, value, onChange }) {
   );
 }
 
-export default function Controls({ opts, setOpts, auto, busy, paused, stopping, onStep, onAuto, onReset, error }) {
+export default function Controls({ children, theme, onToggleTheme, opts, setOpts, auto, busy, paused, stopping, onStep, onAuto, onReset, error }) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef(null);
   const set = (key) => (v) => setOpts({ ...opts, [key]: v });
@@ -56,6 +56,18 @@ export default function Controls({ opts, setOpts, auto, busy, paused, stopping, 
           </svg>
           {auto ? '일시정지' : stopping ? '멈추는 중…' : paused ? '이어하기' : '실행하기'}
         </button>
+        <button className="theme-toggle" role="switch" aria-checked={theme === 'dark'} aria-label="다크 모드" onClick={onToggleTheme}>
+          <span className={theme === 'dark' ? '' : 'on'} aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+            </svg>
+          </span>
+          <span className={theme === 'dark' ? 'on' : ''} aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" /></svg>
+          </span>
+        </button>
+        {children && <div className="btns-right">{children}</div>}
       </div>
       {error && <div className="err" role="alert">{error}</div>}
 

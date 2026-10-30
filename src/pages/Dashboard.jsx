@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useReport } from '../hooks/useReport.js';
+import { useTheme } from '../hooks/useTheme.js';
 import { pauseRun, resetAll, resumeRun, runGeneration } from '../api/client.js';
 import Sidebar from '../components/Sidebar.jsx';
 import Header from '../components/Header.jsx';
+import StatusPills from '../components/StatusPills.jsx';
 import Pipeline from '../components/Pipeline.jsx';
 import Controls from '../components/Controls.jsx';
 import KpiCards from '../components/KpiCards.jsx';
@@ -32,6 +34,7 @@ const pageFromHash = () => {
 
 export default function Dashboard() {
   const { report, connected } = useReport();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [page, setPage] = useState(pageFromHash);
   const [opts, setOpts] = useState({ fpMax: 0, bypMax: 10, intensity: 2, speed: 2 });
   const [auto, setAuto] = useState(false);
@@ -126,10 +129,12 @@ export default function Dashboard() {
       default:
         return (
           <>
-            <Controls opts={opts} setOpts={setOpts} auto={auto} busy={report.busy} paused={!!report.paused} stopping={stopping} onStep={step} onAuto={toggleAuto} onReset={reset} error={error} />
+            <Controls theme={theme} onToggleTheme={toggleTheme} opts={opts} setOpts={setOpts} auto={auto} busy={report.busy} paused={!!report.paused} stopping={stopping} onStep={step} onAuto={toggleAuto} onReset={reset} error={error}>
+              <StatusPills connected={connected} env={report.env} />
+            </Controls>
             <section className="home">
               <div className="home-left">
-                <KpiCards kpis={report.kpis} />
+                <KpiCards kpis={report.kpis} history={report.history} />
                 <RecentGenerations history={report.history} gen={report.gen} busy={report.busy} paused={!!report.paused} activeStage={report.activeStage} deployed={report.deployed} logs={report.logs} />
               </div>
               <div className="card home-panel">
@@ -146,7 +151,7 @@ export default function Dashboard() {
     <div className="layout">
       <Sidebar page={page} onNavigate={navigate} />
       <main className="page">
-        <Header {...PAGES[page]} gen={report?.gen ?? 0} connected={connected} env={report?.env} />
+        <Header {...PAGES[page]} gen={report?.gen ?? 0} connected={connected} env={report?.env} showStatus={page !== 'home' || !report} />
         {renderPage()}
       </main>
     </div>
