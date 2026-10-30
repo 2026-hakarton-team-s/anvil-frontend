@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // 새로고침할 때 라이트 화면이 잠깐 보이지 않도록 저장된 테마를 먼저 적용
+      try { if (localStorage.getItem('anvil-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}
+    </script>
     <title>ANVIL — 자가개선형 웹 방어 시그니처 플랫폼</title>
   </head>
   <body>
