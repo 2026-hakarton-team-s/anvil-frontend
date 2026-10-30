@@ -1,46 +1,93 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const SPEED_LABEL = { 1: '느림', 2: '보통', 3: '빠름' };
+const PlayIcon = () => <path d="M6 3.5v17l14-8.5z" fill="currentColor" />;
+
+/** 막대를 끌어 값을 고르는 슬라이더 (실제 조작은 투명한 range input이 받는다) */
+function Bar({ id, label, value, min, max, step, onChange }) {
+  const ratio = (value - min) / (max - min);
+  return (
+    <div className="bar-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="bar">
+        <div className="bar-fill" style={{ width: `calc(56px + (100% - 56px) * ${ratio})` }}>{value}%</div>
+        <input id={id} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      </div>
+    </div>
+  );
+}
+
+function Segment({ label, options, value, onChange }) {
+  return (
+    <div className="seg-field">
+      <span id={`seg-${label}`}>{label}</span>
+      <div className="seg" role="radiogroup" aria-labelledby={`seg-${label}`}>
+        {options.map(([v, text]) => (
+          <button key={v} type="button" role="radio" aria-checked={value === v} className={value === v ? 'on' : ''} onClick={() => onChange(v)}>
+            {text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Controls({ opts, setOpts, auto, busy, paused, stopping, onStep, onAuto, onReset, error }) {
   const [open, setOpen] = useState(false);
-  const set = (key) => (e) => setOpts({ ...opts, [key]: Number(e.target.value) });
+  const dialogRef = useRef(null);
+  const set = (key) => (v) => setOpts({ ...opts, [key]: v });
+
+  useEffect(() => {
+    const d = dialogRef.current;
+    if (open && !d.open) d.showModal();
+    if (!open && d.open) d.close();
+  }, [open]);
+
+  // 멈춰 있을 때는 설정 창을 띄우고, 실행 중이거나 일시정지 상태면 바로 일시정지/이어하기
+  const onMain = () => (auto || paused ? onAuto() : setOpen(true));
+  const start = () => { setOpen(false); onAuto(); };
+  const once = () => { setOpen(false); onStep(); };
+
   return (
     <section className="controls" aria-label="시뮬레이션 조작">
       <div className="btns">
-        <button className="run" onClick={onAuto} disabled={(busy && !auto && !paused) || stopping}>
+        <button className="run" onClick={onMain} disabled={(busy && !auto && !paused) || stopping} aria-haspopup={auto || paused ? undefined : 'dialog'}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            {auto ? <path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" /> : <path d="M6 3.5v17l14-8.5z" fill="currentColor" />}
+            {auto ? <path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" /> : <PlayIcon />}
           </svg>
           {auto ? '일시정지' : stopping ? '멈추는 중…' : paused ? '이어하기' : '실행하기'}
         </button>
-        <button className="ghost" onClick={onStep} disabled={busy || auto}>1세대 실행</button>
-        <button className="ghost" onClick={onReset} disabled={busy}>초기화</button>
-        <button className={`ghost${open ? ' on' : ''}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="run-settings">
-          설정
-        </button>
       </div>
-      {open && (
-        <div className="settings" id="run-settings">
-          <div className="slider">
-            <label htmlFor="fpMax">오탐 허용치 <b>{opts.fpMax}%</b></label>
-            <input id="fpMax" type="range" min="0" max="10" step="1" value={opts.fpMax} onChange={set('fpMax')} />
-          </div>
-          <div className="slider">
-            <label htmlFor="bypMax">우회 허용치 <b>{opts.bypMax}%</b></label>
-            <input id="bypMax" type="range" min="0" max="60" step="5" value={opts.bypMax} onChange={set('bypMax')} />
-          </div>
-          <div className="slider">
-            <label htmlFor="intensity">AI 공격 강도 <b>{opts.intensity}단계</b></label>
-            <input id="intensity" type="range" min="1" max="3" step="1" value={opts.intensity} onChange={set('intensity')} />
-          </div>
-          <div className="slider">
-            <label htmlFor="speed">진행 속도 <b>{SPEED_LABEL[opts.speed]}</b></label>
-            <input id="speed" type="range" min="1" max="3" step="1" value={opts.speed} onChange={set('speed')} />
-          </div>
-        </div>
-      )}
       {error && <div className="err" role="alert">{error}</div>}
+
+      <dialog
+        ref={dialogRef}
+        className="run-dialog"
+        aria-label="실행 설정"
+        onClose={() => setOpen(false)}
+        onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+      >
+        <button className="close" onClick={() => setOpen(false)} aria-label="닫기">
+          <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+        </button>
+        <Bar id="fpMax" label="오탐 허용치" value={opts.fpMax} min={0} max={10} step={1} onChange={set('fpMax')} />
+        <Bar id="bypMax" label="우회 허용치" value={opts.bypMax} min={0} max={60} step={5} onChange={set('bypMax')} />
+        <div className="seg-row">
+          <Segment label="AI 공격 강도" options={[[1, '1단계'], [2, '2단계'], [3, '3단계']]} value={opts.intensity} onChange={set('intensity')} />
+          <Segment label="진행 속도" options={[[1, '느림'], [2, '보통'], [3, '빠름']]} value={opts.speed} onChange={set('speed')} />
+        </div>
+        <div className="dialog-actions">
+          <button className="start" onClick={start} disabled={busy}>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><PlayIcon /></svg>
+            실행하기
+          </button>
+          <button className="reset" onClick={onReset} disabled={busy} aria-label="초기화" title="초기화">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M19 12a7 7 0 1 1-2.05-4.95" /><path d="M19 4v4h-4" />
+            </svg>
+          </button>
+        </div>
+        <button className="once" onClick={once} disabled={busy}>1세대만 실행</button>
+      </dialog>
     </section>
   );
 }
