@@ -92,9 +92,19 @@ export const runGeneration = (opts) =>
 
 export const resetAll = () => (USE_MOCK ? Promise.resolve(emitMock(MOCK_INITIAL)) : request('/reset', { method: 'POST' }));
 
+/** mock 모드: 지금 배포된 룰의 정규식으로 직접 검사한다 */
+function testMock(req) {
+  let decoded = req;
+  try { decoded = decodeURIComponent(req); } catch { /* 잘못된 인코딩은 원문 그대로 검사 */ }
+  const hit = mockState.deployed.find((r) => {
+    try { return new RegExp(r.pattern, 'i').test(decoded); } catch { return false; }
+  });
+  const local = hit ? { blocked: true, ruleId: hit.id, type: hit.type, pattern: hit.pattern } : { blocked: false };
+  return { request: req, deployedCount: mockState.deployed.length, local };
+}
+
 export const testRequest = (req) =>
-    USE_MOCK
-        ? Promise.resolve({ request: req, deployedCount: 1, local: { blocked: /union|script|\.\./i.test(req), ruleId: 'R017', type: 'sqli', pattern: '(mock)' } })
+    USE_MOCK ? Promise.resolve(testMock(req))
         : request('/test', { method: 'POST', body: JSON.stringify({ request: req }) });
 
 /** kind: normal | attack | mutated */
