@@ -3,7 +3,6 @@ import { getSample, testRequest } from '../api/client.js';
 import { showWs } from '../lib/format.js';
 
 function Verdict({ result }) {
-  if (!result) return <div className="verdict"><span className="k">요청을 입력하거나 샘플 버튼을 누르세요.</span></div>;
   if (result.deployedCount === 0 && !result.waf) {
     return (
       <div className="verdict allow">
@@ -55,9 +54,9 @@ export default function LiveTester() {
   };
 
   return (
-    <div className="card">
+    <div className="card tester-card">
       <h2>실시간 요청 테스트</h2>
-      <p className="card-sub">현재 배포된 룰셋으로 요청을 검사합니다. 백엔드에 WAF_URL이 설정돼 있으면 실제 WAF로도 전송합니다.</p>
+      <p className="card-sub">현재 배포된 룰셋으로 요청을 검사합니다.<br />백엔드에 WAF_URL이 설정돼 있으면 실제 WAF로도 전송합니다.</p>
       <form className="tester" onSubmit={submit}>
         <input value={text} onChange={(e) => { setText(e.target.value); setError(''); }} placeholder="/search?q=..." aria-label="검사할 요청" autoComplete="off" />
         <button className="primary" type="submit">검사</button>
@@ -68,8 +67,16 @@ export default function LiveTester() {
         <button type="button" onClick={() => sample('attack')}>원본 공격</button>
         <button type="button" onClick={() => sample('mutated')}>AI 변형 공격</button>
       </div>
-      {result && <div className="card-sub" style={{ marginTop: 8 }}><code className="mono">{showWs(result.request)}</code></div>}
-      <Verdict result={result} />
+      <div className={`verdict-area${result ? '' : ' empty'}`}>
+        {result ? (
+          <>
+            <code className="mono req">{showWs(result.request)}</code>
+            <Verdict result={result} />
+          </>
+        ) : (
+          <span>요청을 입력하거나 샘플 버튼을 누르세요.</span>
+        )}
+      </div>
     </div>
   );
 }

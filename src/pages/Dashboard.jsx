@@ -22,7 +22,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const PAGES = {
   home: { title: '홈', subtitle: '자기개선형 방어 현황을 한눈에 확인하세요' },
   report: { title: '후보 · 학습', subtitle: '이번 세대 후보가 왜 살아남고 떨어졌는지 확인하세요' },
-  defense: { title: '방어', subtitle: '웹 서버에 적용된 룰셋을 확인하고 요청을 직접 검사하세요' },
+  defense: { title: '룰셋 · 테스트', subtitle: '지금 적용된 룰을 확인하고 직접 검사해 보세요' },
   alerts: { title: '알림', subtitle: '세대별 이벤트 로그를 확인하세요' },
 };
 const pageFromHash = () => {
@@ -113,8 +113,11 @@ export default function Dashboard() {
       }
       case 'defense':
         return (
-          <section className="grid">
-            <DeployedRules deployed={report.deployed} />
+          <section className="defense-grid">
+            <div className="defense-left">
+              <DeployedRules deployed={report.deployed} />
+              <EventLog logs={report.logs} />
+            </div>
             <LiveTester />
           </section>
         );
