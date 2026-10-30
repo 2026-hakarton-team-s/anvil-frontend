@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { FLAG_LABEL, STATUS_VIEW, TYPES, pct } from '../lib/format.js';
 
 const val = (x) => (x === undefined ? '—' : pct(x));
@@ -9,13 +10,23 @@ function Flags({ flags }) {
 
 export default function CandidateTable({ candidates, gen, selected, onSelect }) {
   const alive = candidates.filter((r) => r.status === 'ok' || r.status === 'deploy').length;
+  const wrapRef = useRef(null);
+  // 선택한 행이 스크롤 영역 밖에 있으면 보이도록 표 안에서만 스크롤한다
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const row = wrap?.querySelector('tr.selected');
+    if (!row) return;
+    const head = wrap.querySelector('thead').offsetHeight;
+    if (row.offsetTop - head < wrap.scrollTop) wrap.scrollTop = row.offsetTop - head;
+    else if (row.offsetTop + row.offsetHeight > wrap.scrollTop + wrap.clientHeight) wrap.scrollTop = row.offsetTop + row.offsetHeight - wrap.clientHeight;
+  }, [selected]);
   return (
     <div className="card candidates">
       <div className="card-head">
         <h2>이번 세대 후보 시그니처</h2>
         {candidates.length > 0 && <span className="card-sub">세대 {gen} · 후보 {candidates.length}개 중 생존 {alive}개</span>}
       </div>
-      <div className="table-wrap">
+      <div className="table-wrap" ref={wrapRef}>
         <table>
           <thead>
             <tr><th>유형</th><th>시그니처 (정규식)</th><th>정규화</th><th className="num">탐지</th><th className="num">오탐</th><th className="num">우회</th><th>결과</th></tr>
