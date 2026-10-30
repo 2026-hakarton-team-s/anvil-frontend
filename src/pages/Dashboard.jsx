@@ -13,6 +13,7 @@ import LiveTester from '../components/LiveTester.jsx';
 import CorpusPanel from '../components/CorpusPanel.jsx';
 import EventLog from '../components/EventLog.jsx';
 import RecentGenerations from '../components/RecentGenerations.jsx';
+import RuleDetail from '../components/RuleDetail.jsx';
 
 const SPEED_MS = { 1: 1100, 2: 600, 3: 220 };
 const MAX_GEN = 12;
@@ -20,7 +21,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const PAGES = {
   home: { title: '홈', subtitle: '자기개선형 방어 현황을 한눈에 확인하세요' },
-  report: { title: '리포트', subtitle: '이번 세대 후보 시그니처와 학습 데이터를 확인하세요' },
+  report: { title: '후보 · 학습', subtitle: '이번 세대 후보가 왜 살아남고 떨어졌는지 확인하세요' },
   defense: { title: '방어', subtitle: '웹 서버에 적용된 룰셋을 확인하고 요청을 직접 검사하세요' },
   alerts: { title: '알림', subtitle: '세대별 이벤트 로그를 확인하세요' },
 };
@@ -36,6 +37,7 @@ export default function Dashboard() {
   const [auto, setAuto] = useState(false);
   const [error, setError] = useState('');
   const [stopping, setStopping] = useState(false);
+  const [selectedRule, setSelectedRule] = useState(null);
   const autoRef = useRef(false);
   const loopRef = useRef(0); // 자동 진화 루프 번호. 이어하기로 새 루프가 시작되면 이전 루프는 끝낸다
   const inflightRef = useRef(null); // 진행 중인 세대 요청
@@ -95,14 +97,20 @@ export default function Dashboard() {
       return <div className="card"><p className="card-sub">{connected ? '불러오는 중…' : '백엔드(platform-api)에 연결하는 중입니다. 서버가 켜져 있는지 확인하세요.'}</p></div>;
     }
     switch (page) {
-      case 'report':
+      case 'report': {
+        // 고른 룰이 이번 세대 후보에 없으면 배포된 룰(없으면 첫 번째 후보)을 보여준다
+        const { candidates } = report;
+        const rule = candidates.find((r) => r.id === selectedRule) ?? candidates.find((r) => r.status === 'deploy') ?? candidates[0];
         return (
           <>
-            <KpiCards kpis={report.kpis} items={['techniques', 'corpus']} />
-            <CandidateTable candidates={report.candidates} gen={report.gen} />
-            <CorpusPanel corpus={report.corpus} />
+            <CandidateTable candidates={candidates} gen={report.gen} selected={rule?.id} onSelect={setSelectedRule} />
+            <section className="report-grid">
+              <RuleDetail rule={rule} deployed={report.deployed} fpMax={opts.fpMax} bypMax={opts.bypMax} />
+              <CorpusPanel corpus={report.corpus} kpis={report.kpis} />
+            </section>
           </>
         );
+      }
       case 'defense':
         return (
           <section className="grid">
