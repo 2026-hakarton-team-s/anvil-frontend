@@ -16,13 +16,13 @@ npm run build      # dist/ 로 빌드
 ```
 VITE_USE_MOCK=true
 ```
-mock 모드에서는 실행·초기화 버튼이 목 데이터를 그대로 돌려줄 뿐 진행 연출은 없습니다.
+mock 모드는 0세대(룰 없음)에서 시작하고, 실행할 때마다 5단계 진행 연출 후 1세대씩 쌓입니다. 수치는 흉내 낸 값이고, 후보·배포 룰 등은 `report.json`의 예시 데이터를 씁니다.
 
 ## 폴더 구조
 - `src/api/client.js` : 백엔드 호출과 SSE 구독 (끊기면 3초 폴링으로 대체)
 - `src/hooks/useReport.js` : 최신 report와 연결 상태
-- `src/pages/Dashboard.jsx` : 화면 조립, 자동 진화 루프
-- `src/components/` : 파이프라인, 조작 패널, KPI 카드, 후보 규칙 표, 성능 차트, 배포 룰셋, 요청 테스트, 학습 데이터, 이벤트 로그
+- `src/pages/Dashboard.jsx` : 사이드바 메뉴(홈 · 리포트 · 방어 · 알림, `#/report` 같은 해시로 이동), 화면 조립, 자동 진화 루프
+- `src/components/` : 사이드바, 파이프라인, 조작 패널, KPI 카드, 최근 세대, 후보 규칙 표, 성능 차트, 배포 룰셋, 요청 테스트, 학습 데이터, 이벤트 로그
 - `src/lib/format.js` : 라벨, 상태 표시, 퍼센트 포맷
 - `src/mock/` : 목 데이터 (형식은 `anvil-backend/docs/api.md`)
 - `src/styles/global.css` : 공통 스타일
